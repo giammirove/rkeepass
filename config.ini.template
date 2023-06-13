@@ -1,0 +1,4 @@
+[path]
+kdbx=~/path/to/the/database.kdbx
+[daemon]
+timeout=120

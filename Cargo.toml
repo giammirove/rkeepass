@@ -1,0 +1,23 @@
+[package]
+name = "rkeepass"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+keepass = { version = "0.6.1", features = ["save_kdbx4", "utilities"] }
+fork = "0.1.22"
+anyhow = "1.0.71"
+colored = "2.0.0"
+rpassword = "7.2.0"
+clap = { version = "4.3.3", features = ["derive"] }
+lazy_static = "1.4.0"
+cli-clipboard = "0.4.0"
+configparser = "3.0.2"
+home-dir = "0.1.0"
+text_io = "0.1.12"
+passwords = "3.1.13"
+
+[features]
+save_kdbx4 = []
