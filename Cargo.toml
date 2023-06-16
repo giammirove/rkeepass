@@ -18,6 +18,8 @@ configparser = "3.0.2"
 home-dir = "0.1.0"
 text_io = "0.1.12"
 passwords = "3.1.13"
+pinentry = "0.5.0"
+secrecy = "0.8.0"
 
 [features]
 save_kdbx4 = []

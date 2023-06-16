@@ -2,3 +2,5 @@
 kdbx=~/path/to/the/database.kdbx
 [daemon]
 timeout=120
+[password]
+pinentry=pinentry-curses

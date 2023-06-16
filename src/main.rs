@@ -9,6 +9,8 @@ use keepass::db::Value;
 use keepass::db::{Entry, Group, NodeRef, NodeRefMut};
 use keepass::error::DatabaseKeyError;
 use keepass::{db::Node, Database, DatabaseKey};
+use pinentry::PassphraseInput;
+use secrecy::{ExposeSecret, SecretString};
 use std::fs;
 use std::fs::File;
 use std::io::prelude::*;
@@ -30,6 +32,7 @@ pub static CONFIG_DIR_PATH: &'static str = "~/.config/rkeepass";
 pub static CONFIG_PATH: &'static str = "~/.config/rkeepass/config.ini";
 
 pub static DEF_TIMEOUT: &'static u64 = &120;
+pub static DEF_PINENTRY: &'static str = "pinentry";
 
 lazy_static! {
     pub static ref SOCKET: &'static Path = Path::new(SOCKET_PATH);
@@ -376,7 +379,19 @@ fn handle_thread(mut db: Database, key: String) -> Result<()> {
 
 fn start_thread(kdbx_path: String) -> Result<()> {
     println!("[?] kdbx's password: ");
-    let password = rpassword::read_password()?;
+
+    let password: String;
+    if let Some(mut input) = PassphraseInput::with_binary(read_pinentry()?) {
+        password = input
+            .with_prompt("Password:")
+            .interact()
+            .unwrap_or(SecretString::new("".to_owned()))
+            .expose_secret()
+            .to_string();
+    } else {
+        password = rpassword::read_password()?;
+    };
+
     let db = Database::open(
         &mut File::open(kdbx_path)?, // the database
         DatabaseKey::with_password(&password),
@@ -431,14 +446,15 @@ fn read_config() -> Result<String> {
 
     let mut kdbx_path = config.get("Path", "kdbx").unwrap_or("".to_string());
     if kdbx_path == "" {
+        println!("[-][Init] Daemon timeout set to 120 sec");
         println!(
-            "{}\n[?](Init) kdbx path: ",
+            "{}\n[?][Init] kdbx path: ",
             "[x] kdbx path is missing".red()
         );
-        println!("[-](Init) Daemon timeout set to 120 sec");
         let path: String = read!();
         config.set("Path", "kdbx", Some(path.clone()));
         config.set("Daemon", "timeout", Some((*DEF_TIMEOUT).to_string()));
+        config.set("Password", "pinentry", Some((DEF_PINENTRY).to_string()));
         kdbx_path = path;
         config.write(configfile)?;
     }
@@ -472,6 +488,22 @@ fn read_timeout() -> Result<u64> {
         .unwrap_or(*DEF_TIMEOUT) as u64;
 
     Ok(timeout)
+}
+
+fn read_pinentry() -> Result<String> {
+    let configfileexp = CONFIG_PATH.expand_home()?;
+    let configfile = Path::new(&configfileexp);
+    if !configfile.exists() {
+        return Ok(DEF_PINENTRY.to_string());
+    }
+    let mut config = Ini::new();
+    let _ = config.load(configfile);
+
+    let pinentry: String = config
+        .get("Password", "pinentry")
+        .unwrap_or(DEF_PINENTRY.to_string());
+
+    Ok(pinentry)
 }
 
 fn create_menu() -> Result<ArgMatches> {

@@ -11,3 +11,4 @@ This is my first rust project, be gentle!
 - add,delete entries and groups
 - supports KeePass v4 databases
 - no need to retype the password within a chosen timeout (default 120 sec)
+- support for pinentry
