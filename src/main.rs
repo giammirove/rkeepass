@@ -572,7 +572,7 @@ fn create_menu() -> Result<ArgMatches> {
                 ),
         )
         .subcommand(
-            Command::new("del ").about("Delete selected entry").arg(
+            Command::new("del").about("Delete selected entry").arg(
                 Arg::new("entry")
                     .help("<Group>/Entry")
                     .action(ArgAction::Set)
