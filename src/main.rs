@@ -248,7 +248,6 @@ fn handle_add(socket: &mut UnixStream, db: &mut Database, key: String, raw: Stri
 
             g.children.push(Node::Entry(entry));
 
-            #[cfg(feature = "save_kdbx4")]
             db.save(
                 &mut File::create(read_config()?)?,
                 DatabaseKey::with_password(key.as_str().clone()),
@@ -293,7 +292,6 @@ fn handle_rem(socket: &mut UnixStream, db: &mut Database, key: String, raw: Stri
 
         g.children.remove(index);
 
-        #[cfg(feature = "save_kdbx4")]
         db.save(
             &mut File::create(read_config()?)?,
             DatabaseKey::with_password(key.as_str().clone()),
@@ -330,8 +328,8 @@ fn handle_listener(listener: &UnixListener, db: &mut Database, key: String) -> R
         handle_list(&mut socket, &db)?;
     } else if response.starts_with("add") {
         handle_add(&mut socket, db, key, response.replacen("add ", "", 1))?;
-    } else if response.starts_with("rem") {
-        handle_rem(&mut socket, db, key, response.replacen("rem ", "", 1))?;
+    } else if response.starts_with("del") {
+        handle_rem(&mut socket, db, key, response.replacen("del ", "", 1))?;
     } else if response.starts_with("reload") {
         handle_stop(&mut socket, "reloaded")?;
         return Ok(false);
@@ -574,7 +572,7 @@ fn create_menu() -> Result<ArgMatches> {
                 ),
         )
         .subcommand(
-            Command::new("rem").about("Remove selected entry").arg(
+            Command::new("del ").about("Delete selected entry").arg(
                 Arg::new("entry")
                     .help("<Group>/Entry")
                     .action(ArgAction::Set)
